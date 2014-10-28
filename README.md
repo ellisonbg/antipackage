@@ -1,4 +1,4 @@
-githubimport
-============
+AntiPackage
+===========
 
-Magically import Python modules from GiitHub
+The anit package manager for auto-importing Python modules from GitHub.
