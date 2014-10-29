@@ -2,12 +2,20 @@ from __future__ import print_function
 import os
 import sys
 from urllib import urlretrieve
+import hashlib
+import shutil
+
+class InstallError(Exception):
+    pass
 
 class GitHubImporter(object):
     def __init__(self):
         self.base_dir = os.path.expanduser('~/.antipackage')
+        self.cache_dir = os.path.join(self.base_dir, 'cache')
         if not os.path.exists(self.base_dir):
             os.makedirs(self.base_dir)
+        if not os.path.exists(self.cache_dir):
+            os.makedirs(self.cache_dir)
         sys.path.append(self.base_dir)
 
     def _parse_fullname(self, fullname):
@@ -30,8 +38,37 @@ class GitHubImporter(object):
 
     def _install_filename(self, username, repo, filename, path):
         url = 'https://raw.githubusercontent.com/%s/%s/master/%s' % (username, repo, filename)
-        # print('Downloading: ', url)
-        urlretrieve(url, os.path.join(path, filename))
+        print('Downloading: ', url)
+        file_key = '.'.join([username, repo, filename])
+        try:
+            tmp_file, resp = urlretrieve(url)
+            with open(tmp_file,'r') as f:
+                new_content = f.read()
+            if new_content=='Not Found':
+                raise InstallError('remote file does not exist')
+        except IOError:
+            raise InstallError('error downloading file')
+        
+        hash_file = os.path.join(self.cache_dir, file_key)
+        with open(tmp_file, 'r') as f:
+            new_hash = hashlib.md5(f.read()).hexdigest()
+
+        old_hash = ''
+        print('hash_file: ', hash_file)
+        if os.path.isfile(hash_file):
+            with open(hash_file, 'r') as f:
+                old_hash = f.read()
+
+        print('old hash: ', old_hash)
+        print('new_hash: ', new_hash)
+        
+        if old_hash!=new_hash:
+            print('updating module: ', file_key)
+            shutil.copy(tmp_file, os.path.join(path, filename))
+            with open(hash_file, 'w') as f:
+                f.write(new_hash)
+        else:
+            print('using cached version: ', file_key)
     
     def _setup_package(self, path):
         if not os.path.exists(path):
