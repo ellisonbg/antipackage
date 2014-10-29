@@ -1,5 +1,5 @@
 def f(x):
   return x
 
-a = 10
-b = 20
+a = 20
+b = 30

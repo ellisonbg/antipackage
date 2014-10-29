@@ -11,16 +11,13 @@ class InstallError(Exception):
 class GitHubImporter(object):
     def __init__(self):
         self.base_dir = os.path.expanduser('~/.antipackage')
-        self.cache_dir = os.path.join(self.base_dir, 'cache')
         if not os.path.exists(self.base_dir):
             os.makedirs(self.base_dir)
-        if not os.path.exists(self.cache_dir):
-            os.makedirs(self.cache_dir)
         sys.path.append(self.base_dir)
 
     def _parse_fullname(self, fullname):
         comps = fullname.split('.')
-        top, username, repo, filename = None, None, None, None
+        top, username, repo, modname = None, None, None, None
         if len(comps)>=1:
             top = 'github'
         if len(comps)>=2:
@@ -28,56 +25,68 @@ class GitHubImporter(object):
         if len(comps)>=3:
             repo = comps[2]
         if len(comps)>=4:
-            filename = comps[3]
-        return top, username, repo, filename
+            modname = comps[3]
+        return top, username, repo, modname
         
     def _install_init(self, path):
             ipath = os.path.join(path, '__init__.py')
             # print('Installing: ', ipath)
             self._touch(ipath)
 
-    def _install_filename(self, username, repo, filename, path):
-        url = 'https://raw.githubusercontent.com/%s/%s/master/%s' % (username, repo, filename)
+    def _setup_package(self, path):
+        if not os.path.exists(path):
+            os.makedirs(path)
+        self._install_init(path)
+
+    def _update_if_changed(self, old, new):
+        new_hash = ''
+        with open(new, 'r') as f:
+            new_hash = hashlib.md5(f.read()).hexdigest()
+        old_hash = ''
+        if os.path.isfile(old):
+            with open(old, 'r') as f:
+                old_hash = hashlib.md5(f.read()).hexdigest()
+        if new_hash!=old_hash:
+            shutil.copy(new, old)
+            if old_hash:
+                return 'updated'
+            else:
+                return 'installed'
+        return 'noaction'
+
+    def _touch(self, path):
+        with open(path, 'a'):
+            os.utime(path, None)
+
+    def _install_module(self, fullname):
+        top, username, repo, modname = self._parse_fullname(fullname)
+        url = 'https://raw.githubusercontent.com/%s/%s/master/%s' % (username, repo, modname+'.py')
         print('Downloading: ', url)
-        file_key = '.'.join([username, repo, filename])
         try:
             tmp_file, resp = urlretrieve(url)
-            with open(tmp_file,'r') as f:
+            with open(tmp_file, 'r') as f:
                 new_content = f.read()
             if new_content=='Not Found':
                 raise InstallError('remote file does not exist')
         except IOError:
             raise InstallError('error downloading file')
         
-        hash_file = os.path.join(self.cache_dir, file_key)
-        with open(tmp_file, 'r') as f:
-            new_hash = hashlib.md5(f.read()).hexdigest()
+        new = tmp_file
+        old = self._install_path(fullname)
+        updated = self._update_if_changed(old, new)
+        if updated=='updated':
+            print('Updating module: ', fullname)
+        elif updated=='installed':
+            print('Installing module: ', fullname)
+        elif updated=='noaction':
+            print('Using existing version: ', fullname)
 
-        old_hash = ''
-        print('hash_file: ', hash_file)
-        if os.path.isfile(hash_file):
-            with open(hash_file, 'r') as f:
-                old_hash = f.read()
+    def _install_path(self, fullname):
+        top, username, repo, modname = self._parse_fullname(fullname)
+        return os.path.join(self.base_dir, top, username, repo, modname+'.py')
 
-        print('old hash: ', old_hash)
-        print('new_hash: ', new_hash)
-        
-        if old_hash!=new_hash:
-            print('updating module: ', file_key)
-            shutil.copy(tmp_file, os.path.join(path, filename))
-            with open(hash_file, 'w') as f:
-                f.write(new_hash)
-        else:
-            print('using cached version: ', file_key)
-    
-    def _setup_package(self, path):
-        if not os.path.exists(path):
-            os.makedirs(path)
-        self._install_init(path)
-    
     def _make_package(self, fullname):
-        pkgs = fullname.split('.')
-        top, username, repo, filename = self._parse_fullname(fullname)
+        top, username, repo, modname = self._parse_fullname(fullname)
         if repo is not None:
             repo_path = os.path.join(self.base_dir, top, username, repo)
             self._setup_package(repo_path)
@@ -87,13 +96,15 @@ class GitHubImporter(object):
         if top is not None:
             top_path = os.path.join(self.base_dir, top)
             self._setup_package(top_path)
-        if filename is not None:
-            self._install_filename(username, repo, filename+'.py', repo_path)
-            
-    def _touch(self, path):
-        with open(path, 'a'):
-            os.utime(path, None)
-                
+        if modname is not None:
+            try:
+                self._install_module(fullname)
+            except InstallError:
+                if os.path.isfile(self._install_path(fullname)):
+                    print('Using existing version: ', fullname)
+                else:
+                    print('Error installing/updating module: ', fullname)
+
     def find_module(self, fullname, path=None):
         # print('find_module', fullname, path)
         if fullname.startswith('github'):
