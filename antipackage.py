@@ -1,3 +1,4 @@
+# encoding: utf-8
 """Automagically import single file Python modules from GitHub.
 
 To use, just import `antigravity`:
