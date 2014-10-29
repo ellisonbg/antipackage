@@ -1,3 +1,17 @@
+"""Automagically import single file Python modules from GitHub.
+
+To use, just import `antigravity`:
+
+    import antigravity
+
+Then you can import single file Python modules from GitHub using:
+
+    from github.username.repo import module
+
+Modules are downloaded and cached locally. They are automatically updated to the latest version
+anytime they change on GitHub.
+"""
+
 from __future__ import print_function
 import os
 import sys
@@ -9,6 +23,7 @@ class InstallError(Exception):
     pass
 
 class GitHubImporter(object):
+    
     def __init__(self):
         self.base_dir = os.path.expanduser('~/.antipackage')
         if not os.path.exists(self.base_dir):

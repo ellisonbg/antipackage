@@ -1,9 +1,11 @@
 AntiPackage
 ===========
 
-The anti package manager for auto-importing Python modules from GitHub.
+Automagically import single file Python modules from GitHub.
 
 ## Installation
+
+Th `antigravity` package can be installed from GitHub using `pip`:
 
 ```
 pip install git+https://git.myproject.org/antipackage#egg=antipackage
@@ -17,18 +19,12 @@ Enable `antipackage` by simply importing it:
 import antipackage
 ```
 
-Then you can import single file Python modules at the top level of GitHub repos
-using the syntax:
+Once `antigravity` has been imported you can simply import modules from GitHub using the syntax:
 
 ```python
 from github.username.repo import module
 ```
 
-So for example, this repo has a top-level `foo.py`. It can be imported using:
-
-```python
-from github.ellisonbg.antipackage import foo
-```
-
-When a module is imported it is downloaded into the location
-`~/.antipackage/github/username/repo` and cached for future usage.
+When you do this, the import hook will automatically download and install single file
+Python modules into the location `~/.antipackage/github/username/repo/module.py`. If the
+module every changes on GitHub it will be updated next time you import it.
