@@ -5,7 +5,7 @@ Automagically import single file Python modules from GitHub.
 
 ## Installation
 
-Th `antigravity` package can be installed from GitHub using `pip`:
+The `antigravity` package can be installed from GitHub using `pip`:
 
 ```
 pip install git+https://git.myproject.org/antipackage#egg=antipackage
