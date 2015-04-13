@@ -5,7 +5,7 @@ Automagically import single file Python modules from GitHub.
 
 ## Installation
 
-The `antigravity` package can be installed from GitHub using `pip`:
+The `antipackage` package can be installed from GitHub using `pip`:
 
 ```
 pip install git+https://github.com/ellisonbg/antipackage.git#egg=antipackage
@@ -19,7 +19,7 @@ Enable `antipackage` by simply importing it:
 import antipackage
 ```
 
-Once `antigravity` has been imported you can simply import modules from GitHub using the syntax:
+Once `antipackage` has been imported you can simply import modules from GitHub using the syntax:
 
 ```python
 from github.username.repo import module
@@ -31,7 +31,7 @@ module every changes on GitHub it will be updated next time you import it.
 
 ## Absolute imports
 
-The `antigravity` package is written looking forward to the days when Python 2 is no longer
+The `antipackage` package is written looking forward to the days when Python 2 is no longer
 supported. Because of this, the import hooks used in `antipackage` assume that relative imports
 are not used in the single file modules that are being imported. To enable this behavior for Python 2,
 add the following line at the top of your modules:
