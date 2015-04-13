@@ -27,7 +27,7 @@ from github.username.repo import module
 
 When you do this, the import hook will automatically download and install single file
 Python modules into the location `~/.antipackage/github/username/repo/module.py`. If the
-module every changes on GitHub it will be updated next time you import it.
+module ever changes on GitHub it will be updated next time you import it.
 
 ## Absolute imports
 
