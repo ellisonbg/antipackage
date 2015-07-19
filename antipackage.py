@@ -16,9 +16,14 @@ anytime they change on GitHub.
 from __future__ import print_function
 import os
 import sys
-from urllib import urlretrieve
 import hashlib
 import shutil
+# Imports for urllib are different in py2 vs. py3
+try: 
+    from urllib import urlretrieve
+except ImportError:
+    from urllib.request import urlretrieve
+
 
 class InstallError(Exception):
     pass
