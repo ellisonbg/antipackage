@@ -1,9 +1,9 @@
 # encoding: utf-8
 """Automagically import single file Python modules from GitHub.
 
-To use, just import `antigravity`:
+To use, just import `antipackage`:
 
-    import antigravity
+    import antipackage
 
 Then you can import single file Python modules from GitHub using:
 
